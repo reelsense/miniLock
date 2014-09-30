@@ -75,7 +75,10 @@ $('form.unlockForm').on('submit', function() {
 		$('div.unlockInfo').animate({height: 20})
 		$('div.unlockInfo').text($('div.unlockInfo').data('keyok'))
 		$('input.miniLockKey').attr('readonly', 'readonly')
-		miniLock.crypto.getKeyPair(key, email)
+		miniLock.crypto.getKeyPair(key, email, function(keyPair) {
+			miniLock.session.keys = keyPair
+			miniLock.session.keyPairReady = true
+		})
 		// Keep polling until we have a key pair
 		var keyReadyInterval = setInterval(function() {
 			if (miniLock.session.keyPairReady) {

@@ -224,18 +224,20 @@ miniLock.crypto.checkKeyStrength = function(key, email) {
 	return (zxcvbn(key).entropy > minEntropy)
 }
 
-// Input: User key (String), User salt (email) (String)
-// Result: Object: {
+// Input: User key (String), User salt (email) (String), callback (function)
+// Result: Passes the following object to the callback:
+// {
 //	publicKey: Public encryption key (Uint8Array),
 //	secretKey: Secret encryption key (Uint8Array)
 // }
-miniLock.crypto.getKeyPair = function(key, salt) {
+miniLock.crypto.getKeyPair = function(key, salt, callback) {
 	var keyHash = new BLAKE2s(32)
 	keyHash.update(nacl.util.decodeUTF8(key))
 	salt = nacl.util.decodeUTF8(salt)
 	miniLock.crypto.getScryptKey(keyHash.digest(), salt, function(keyBytes) {
-		miniLock.session.keys = nacl.box.keyPair.fromSecretKey(keyBytes)
-		miniLock.session.keyPairReady = true
+		if (typeof(callback) === 'function') {
+			callback(nacl.box.keyPair.fromSecretKey(keyBytes))
+		}
 	})
 }
 
