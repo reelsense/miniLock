@@ -1,7 +1,7 @@
 // miniLock.phrase is a library that returns n-word passphrases,
 // randomly picked from the 58,110 most-used words in the English language.
 // With this many words, a 7-word passphrase is enough to guarantee
-// ~111 bits of entropy (10000^7 ~= 2^111)
+// ~111 bits of entropy (58110^7 ~= 2^111)
 (function() {
 'use strict';
 
