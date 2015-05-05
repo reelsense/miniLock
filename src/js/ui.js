@@ -612,7 +612,7 @@ $('form.process').on('decrypt:start', function(event, file) {
 	// Activate the input name tag.
 	$('form.process div.input.name').addClass('activated')
 	// Render input file size.
-	$('span.fileSize').text(miniLock.UI.readableFileSize(file.size))
+	$('form.process a.fileSize').text(miniLock.UI.readableFileSize(file.size))
 	// Animate decryption operation progress
 	miniLock.UI.animateProgressBar(0, file.size)
 })
