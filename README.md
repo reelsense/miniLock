@@ -46,7 +46,7 @@ miniLock uses the [zxcvbn](https://github.com/dropbox/zxcvbn) library in order t
 
 Users are encouraged to use passphrases which are easier to remember but harder to guess. If a user fails to enter a sufficiently entropic passphrase, miniLock will use a built-in dictionary of the 58,110 most common words in the English language to suggest a seven-word passphrase. This gives us a passphrase with approximately 111 bits of entropy, since 58110<sup>7</sup> ~= 2<sup>111</sup>.
 
-Once we obtain a suitable passphrase, we hash it using `BLAKE2` and pass the resulting 32 bytes through `scrypt` in order to obtain the user's private `curve25519` key. `scrypt` is invoked using the following parameters::
+Once we obtain a suitable passphrase, we hash it using `BLAKE2s` and pass the resulting 32 bytes through `scrypt` in order to obtain the user's private `curve25519` key. `scrypt` is invoked using the following parameters::
 
 * N = 2<sup>17</sup>
 * r = 8,
@@ -57,7 +57,7 @@ miniLock uses the email address entered by the user as the `scrypt` key derivati
 
 Once we obtain our 32-byte private key, the public key is derived for use with the TweetNaCL `curve25519-xsalsa20-poly1305` construction.
 
-The user's `miniLock ID` consists of 33 bytes. The first 32 bytes are the user's `curve25519` public key. The last byte acts as a checksum: it is derived by hashing the first 32 bytes with `BLAKE2` set to a 1-byte output. After constructing the 33 bytes of the miniLock ID, it is encoded into a Base58 representation, meant to be easily communicable via email or instant messaging.
+The user's `miniLock ID` consists of 33 bytes. The first 32 bytes are the user's `curve25519` public key. The last byte acts as a checksum: it is derived by hashing the first 32 bytes with `BLAKE2s` set to a 1-byte output. After constructing the 33 bytes of the miniLock ID, it is encoded into a Base58 representation, meant to be easily communicable via email or instant messaging.
 
 
 ###3. File format
@@ -91,7 +91,7 @@ decryptInfo: {
 		fileInfo: {
 			fileKey: Key for file decryption (Base64),
 			fileNonce: Nonce for file decryption (Base64),
-			fileHash: BLAKE2 hash (32 bytes) of the ciphertext bytes. (Base64)
+			fileHash: BLAKE2s hash (32 bytes) of the ciphertext bytes. (Base64)
 		} (fileInfo is encrypted to recipient's public key using long-term key pair) (Base64),
 	} (encrypted to recipient's public key using ephemeral key pair) (Base64)
 }
@@ -141,7 +141,7 @@ In order to decrypt the file, the recipient needs the information stored within 
 
 If there are multiple properties within `decryptInfo`, the recipient must iterate through every property until she obtains an authenticated decryption of the underlying object. Once a successful authenticated decryption of a `decryptInfo` property occurs, the recipient can then use the obtained `senderID` along with their long-term secret key to decrypt `fileKey` and use it in conjunction with `fileNonce` to perform an authenticated decryption of the ciphertext bytes.
 
-Before or during file decryption, the recipient compares the 32-byte `BLAKE2` hash of the ciphertext against the decrypted `fileHash`. The recipient also compares the decrypted `recipientID` against their own miniLock ID. If any of these checks fail, decryption is aborted and an error is returned.
+Before or during file decryption, the recipient compares the 32-byte `BLAKE2s` hash of the ciphertext against the decrypted `fileHash`. The recipient also compares the decrypted `recipientID` against their own miniLock ID. If any of these checks fail, decryption is aborted and an error is returned.
 
 In order to decrypt the ciphertext bytes, the recipient breaks the ciphertext down to chunks consisting of the original 1048576 bytes of the plaintext chunk, plus the 4 bytes defining the chunk length and the 16 bytes defining the `poly1305` authentication code of that particular ciphertext chunk. Each chunk is then decrypted sequentially using the following model:
 
