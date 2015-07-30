@@ -7,18 +7,21 @@
 
 miniLock.phrase = {}
 
-// Utility function: Secure function that emulates Math.random()
-var secureRandom = function() {
-	var result = '0.'
-	var buffer = new Uint8Array(32)
-	window.crypto.getRandomValues(buffer)
-	for (var i = 0; i < buffer.length; i++) {
-		if (buffer[i] > 249) {
-			continue
-		}
-		result += (buffer[i] % 10).toString()
+// Utility function: Secure function that returns a number in the range [0, count)
+var secureRandom = function(count) {
+	var rand = new Uint32Array(1)
+	var skip = 0x7fffffff - 0x7fffffff % count
+	var result
+
+	if (((count - 1) & count) === 0) {
+		window.crypto.getRandomValues(rand)
+		return rand[0] & (count - 1)
 	}
-	return parseFloat(result)
+	do {
+		window.crypto.getRandomValues(rand)
+		result = rand[0] & 0x7fffffff
+	} while (result >= skip)
+	return result % count
 }
 
 // Input: Number of words required in phrase
@@ -28,7 +31,7 @@ miniLock.phrase.get = function(n) {
 	var word
 	for (var i = 0; i < n; i++) {
 		word = miniLock.phrase.words[
-			Math.floor(secureRandom() * miniLock.phrase.words.length)
+			secureRandom(miniLock.phrase.words.length)
 		]
 		phrase += word
 		if (i !== (n - 1)) {
